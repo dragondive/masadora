@@ -1,0 +1,56 @@
+name: Build and publish docker image from Github repository
+on:
+  workflow_dispatch:
+    inputs:
+      github_repository_url:
+        description: "Github public repository address to build the image for"
+        required: true
+      git_branch_or_tag:
+        description: "Branch or tag to be used in the image"
+        required: true
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  checkout-build-publish:
+  # "Unmodularize" to ensure all the steps run in the same job,
+  # and thus avoid upload/download artifacts. :(
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the Dockerfile
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/workflows/build-and-publish-docker-image-from-github-repository/Dockerfile
+          path: self
+
+      - name: Checkout specified branch or tag from the github repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.github_repository_url }}
+          ref: ${{ inputs.git_branch_or_tag }}
+          path: repo
+
+      - name: Login to the container registry
+        uses: docker/login-action@v2.2.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.PAT }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4.6.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ inputs.github_repository_url }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4.2.1
+        with:
+          context: repo
+          file: self/.github/workflows/build-and-publish-docker-image-from-github-repository/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/${{ inputs.github_repository_url }}:${{ inputs.git_branch_or_tag }}
+          labels: ${{ steps.meta.outputs.labels }}
