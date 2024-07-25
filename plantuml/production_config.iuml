@@ -1,0 +1,28 @@
+!$production_config = {
+"job_list": [
+    {
+        "customer_name": "Future Gadget Lab",
+        "widgets_per_box": 4,
+        "required_widgets": 10,
+        "allow_partially_filled_box": false
+    },
+    {
+        "customer_name": "Acme Corporation",
+        "widgets_per_box": 5,
+        "required_widgets": 10,
+        "allow_partially_filled_box": true
+    },
+    {
+        "customer_name": "Stark Industries",
+        "widgets_per_box": 6,
+        "required_widgets": 15,
+        "allow_partially_filled_box": true
+    },
+    {
+        "customer_name": "Gaitonde Enterprises",
+        "widgets_per_box": 3,
+        "required_widgets": 12,
+        "allow_partially_filled_box": false
+    }
+]
+}
