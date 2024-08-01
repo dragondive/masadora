@@ -1,0 +1,53 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "helicopter"
+version = "0.1.0"
+description = "scrape cricket hosting data to json for hierarchical drawing"
+authors = ["Aravind Pai <dragondive@outlook.in>"]
+maintainers = ["Aravind Pai <dragondive@outlook.in>"]
+readme = "README.md"
+keywords = [
+    "scraping", 
+    "cricket",
+    "drawing",
+    "fun-project",
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+loguru = "*"
+pandas = "*"
+lxml = "*"
+requests = "*"
+click = "*"
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+prospector = { version = "*", extras = ["with-everything"] }
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+coverage = "*"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+portray = "*"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.scripts]
+helicopter-cli = "helicopter.__main__:main"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src/helicopter",
+]
