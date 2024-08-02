@@ -1,0 +1,71 @@
+name: Scrape Test cricket matches hosted data into JSON file
+
+on:
+  workflow_call:
+
+jobs:
+  fly-helicopter:
+    name: Scrape and clean data
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: python/helicopter
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+        with:
+          repository: dragondive/masadora
+
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v5.1.1
+        with:
+          python-version: '>=3.12'
+
+      - name: Load cached poetry
+        id: cached-poetry
+        uses: actions/cache@v4.0.2
+        with:
+          path: ~/.local
+          key: poetry-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-0
+
+      - name: Install poetry
+        if: steps.cached-poetry.outputs.cache-hit != 'true'
+        uses: snok/install-poetry@v1.4.1
+        with:
+          virtualenvs-path: ${{ runner.temp }}/venv/helicopter-${{ hashFiles('python/helicopter/poetry.lock') }}
+
+      - name: Configure poetry
+        if: steps.cached-poetry.outputs.cache-hit == 'true'
+        run: |
+          poetry config \
+            virtualenvs.path ${{ runner.temp }}/venv/helicopter-${{ hashFiles('python/helicopter/poetry.lock') }}
+
+      - name: Load cached dependencies
+        id: cached-dependencies
+        uses: actions/cache@v4.0.2
+        with:
+          path: ${{ runner.temp }}/venv/helicopter-${{ hashFiles('python/helicopter/poetry.lock') }}
+          key: helicopter-venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('python/helicopter/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-dependencies.outputs.cache-hit != 'true'
+        run: |
+          poetry install --no-interaction
+
+      - name: Fly helicopter
+        run: |
+          poetry run helicopter-cli \
+            --output-file-path cricket_grounds_test_matches_hosted.json \
+            --save-grounds-data-file-path cricket_grounds_data.csv
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4.3.5
+        with:
+          name: fly-helicopter-artifacts
+          path: |
+            python/helicopter/cricket_grounds_data.csv
+            python/helicopter/cricket_grounds_test_matches_hosted.json

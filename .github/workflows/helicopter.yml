@@ -1,0 +1,106 @@
+name: Update PlantUML diagram from external data
+on:
+  workflow_dispatch:
+    inputs:
+      plantuml-version:
+        description: PlantUML version to use
+        required: true
+        default: latest
+        type: string
+      commit-data-files:
+        description: Commit the intermediate CSV file and JSON file to the repository
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  fly-helicopter:
+    name: Scrape and clean data
+    uses: ./.github/workflows/fly-helicopter.yml
+
+  land-helicopter:
+    name: Generate PlantUML diagram
+    runs-on: ubuntu-latest
+    needs: fly-helicopter
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: fly-helicopter-artifacts
+
+      - name: Load cached PlantUML
+        id: cached-plantuml
+        if: ${{ inputs.plantuml-version != 'latest' }}
+        uses: actions/cache@v4.0.2
+        with:
+          path: ${{ runner.temp }}/plantuml.jar
+          key: plantuml-${{ inputs.plantuml-version }}
+
+      - name: Setup PlantUML
+        if: steps.cached-plantuml.outputs.cache-hit != 'true'
+        run: |
+          if [ "${{ inputs.plantuml-version }}" = "latest" ]; then
+            PLANTUML_DOWNLOAD_URL=https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+          else
+            PLANTUML_DOWNLOAD_URL=https://github.com/plantuml/plantuml/releases/download/v${{ inputs.plantuml-version }}/plantuml.jar
+          fi
+          curl -L -o ${{ runner.temp }}/plantuml.jar $PLANTUML_DOWNLOAD_URL
+
+      - name: Generate diagram
+        run: |
+          java -jar ${{ runner.temp }}/plantuml.jar \
+            -tsvg \
+            -Dinput_json_file=${{ github.workspace }}/cricket_grounds_test_matches_hosted.json \
+            -o ${{ github.workspace }} \
+            plantuml/test_match_host_wbs_demo.puml
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4.3.5
+        with:
+          name: land-helicopter-artifacts
+          path: |
+            test_match_host_wbs_demo.svg
+
+
+  store-helicopter:
+    name: Commit results to repository
+    runs-on: ubuntu-latest
+    needs:
+      - fly-helicopter
+      - land-helicopter
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+        with:
+          ref: artifacts
+
+      - name: Download fly-helicopter-artifacts
+        uses: actions/download-artifact@v4.1.8
+        if: ${{ inputs.commit-data-files }}
+        with:
+          name: fly-helicopter-artifacts
+          path: python/helicopter/results
+
+      - name: Download land-helicopter-artifacts
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: land-helicopter-artifacts
+          path: python/helicopter/results
+
+      - name: Compute run timestamp
+        shell: bash
+        id: commit-timestamp
+        run: |
+          echo "timestamp=$(date +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Commit generated diagram and data files
+        uses: stefanzweifel/git-auto-commit-action@v5.0.1
+        with:
+          commit_message: updated test_match_host_wbs_demo diagram at ${{ steps.commit-timestamp.outputs.timestamp }}
+          branch: artifacts
+          file_pattern: python/helicopter/results/
