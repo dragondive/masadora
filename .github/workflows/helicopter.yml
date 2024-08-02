@@ -1,0 +1,141 @@
+name: Update PlantUML diagram from external data
+on:
+  workflow_dispatch:
+    inputs:
+      plantuml_version:
+        description: PlantUML version to use
+        required: true
+        default: latest
+        type: string
+      commit_data_files:
+        description: Commit the intermediate CSV file and JSON file to the repository
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  fly-helicopter:
+    name: Scrape howstat.com and transform data to JSON file
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: python/helicopter
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup python
+        id: setup-python
+        uses: actions/setup-python@v5.1.1
+        with:
+          python-version: '>=3.12'
+
+      - name: Load cached poetry
+        id: cached-poetry
+        uses: actions/cache@v4.0.2
+        with:
+          path: ~/.local
+          key: poetry-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-0
+
+      - name: Install poetry
+        if: steps.cached-poetry.outputs.cache-hit != 'true'
+        uses: snok/install-poetry@v1.4.1
+        with:
+          virtualenvs-path: ${{ runner.temp }}/venv/helicopter-${{ hashFiles('python/helicopter/poetry.lock') }}
+
+      - name: Configure poetry
+        if: steps.cached-poetry.outputs.cache-hit == 'true'
+        run: |
+          poetry config virtualenvs.path ${{ runner.temp }}/venv/helicopter-${{ hashFiles('python/helicopter/poetry.lock') }}
+
+      - name: Load cached dependencies
+        id: cached-helicopter-dependencies
+        uses: actions/cache@v4.0.2
+        with:
+          path: ${{ runner.temp }}/venv/helicopter-${{ hashFiles('python/helicopter/poetry.lock') }}
+          key: helicopter-venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('python/helicopter/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-helicopter-dependencies.outputs.cache-hit != 'true'
+        run: |
+          poetry install --no-interaction
+
+      - name: Fly helicopter
+        run: |
+          HELICOPTER_CLI_ARGS=""
+          if [ "${{ inputs.commit_data_files }}" = "true" ]; then
+            HELICOPTER_CLI_ARGS+="--save-grounds-data-file-path cricket_grounds_data.csv"
+          fi
+          poetry run helicopter-cli $HELICOPTER_CLI_ARGS
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4.3.5
+        with:
+          name: fly-helicopter-artifacts
+          path: |
+            python/helicopter/cricket_grounds_test_matches_hosted.json
+            python/helicopter/cricket_grounds_data.csv
+
+  land-helicopter:
+    name: Generate PlantUML diagram
+    runs-on: ubuntu-latest
+    needs: fly-helicopter
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: fly-helicopter-artifacts
+
+      - name: Load cached PlantUML
+        id: cached-plantuml
+        if: ${{ inputs.plantuml_version != 'latest' }}
+        uses: actions/cache@v4.0.2
+        with:
+          path: ${{ runner.temp }}/plantuml.jar
+          key: plantuml-${{ inputs.plantuml_version }}
+
+      - name: Setup PlantUML
+        if: steps.cached-plantuml.outputs.cache-hit != 'true'
+        run: |
+          if [ "${{ inputs.plantuml_version }}" = "latest" ]; then
+            PLANTUML_DOWNLOAD_URL=https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+          else
+            PLANTUML_DOWNLOAD_URL=https://github.com/plantuml/plantuml/releases/download/v${{ inputs.plantuml_version }}/plantuml.jar
+          fi
+          curl -L -o ${{ runner.temp }}/plantuml.jar $PLANTUML_DOWNLOAD_URL
+
+      - name: Generate diagram
+        run: |
+          mkdir -p ${{ github.workspace }}/python/helicopter/results/
+          java -jar ${{ runner.temp }}/plantuml.jar \
+            -tsvg \
+            -Dinput_json_file=${{ github.workspace}}/cricket_grounds_test_matches_hosted.json \
+            -o ${{ github.workspace }}/python/helicopter/results/ \
+            plantuml/test_match_host_wbs_demo.puml
+
+      - name: Move data files to results
+        if: ${{ inputs.commit_data_files }}
+        run: |
+          mkdir -p ${{ github.workspace }}/python/helicopter/results/
+          mv cricket_grounds_test_matches_hosted.json ${{ github.workspace }}/python/helicopter/results/
+          mv cricket_grounds_data.csv ${{ github.workspace }}/python/helicopter/results/
+
+      - name: Compute run timestamp
+        shell: bash
+        id: commit-timestamp
+        run: |
+          echo "timestamp=$(date +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Commit generated diagram
+        uses: stefanzweifel/git-auto-commit-action@v5.0.1
+        with:
+          commit_message: updated test_match_host_wbs_demo diagram at ${{ steps.commit-timestamp.outputs.timestamp }}
+          branch: artifacts
+          file_pattern: python/helicopter/results/
