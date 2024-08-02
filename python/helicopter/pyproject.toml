@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "scrape cricket hosting data to json for hierarchical drawing"
 authors = ["Aravind Pai <dragondive@outlook.in>"]
 maintainers = ["Aravind Pai <dragondive@outlook.in>"]
-readme = "README.md"
+readme = "README.rst"
 keywords = [
     "scraping", 
     "cricket",
