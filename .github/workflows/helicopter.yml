@@ -24,3 +24,5 @@ jobs:
 
       - name: Run PlantUML
         uses: dragondive/run-plantuml-local@main
+        with:
+          version: ${{ inputs.plantuml-version }}
