@@ -17,16 +17,15 @@ jobs:
         plantuml-version:
           - latest
           - '1.2024.6'
-          - '1.2024.5'
         cli-arguments:
-          - '-h'
-          - '-decodeurl https://www.plantuml.com/plantuml/uml/SoWkIImgAStDuNBAJrBGjLDmpCbCJbMmKiX8pSd9vt98pKi1IW80'
-          - '-tsvg plantuml/production_controller_sequence.puml'
+          - -h
+          - -decodeurl SoWkIImgAStDuNBAJrBGjLDmpCbCJbMmKiX8pSd9vt98pKi1IW80
+          - -tsvg plantuml/production_controller_sequence.puml
         jvm-options:
           - ''
-          - '-DPLANTUML_LIMIT_SIZE=8192'
-          - '-Xmx1024m'
-          - '-DPLANTUML_LIMIT_SIZE=8192 -Xmx1024m'
+          - -DPLANTUML_LIMIT_SIZE=8192
+          - -Xmx1024m
+          - -DPLANTUML_LIMIT_SIZE=8192 -Xmx1024m
 
     runs-on: ${{ matrix.os }}
 
