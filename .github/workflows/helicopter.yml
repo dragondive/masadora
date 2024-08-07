@@ -1,22 +1,43 @@
 name: Update PlantUML diagram from external data
 on:
   workflow_dispatch:
-    inputs:
-      plantuml-version:
-        description: PlantUML version to use
-        required: true
-        default: latest
-        type: string
-      commit-data-files:
-        description: Commit the intermediate CSV file and JSON file to the repository
-        required: false
-        type: boolean
-        default: false
 
 jobs:
   land-helicopter:
     name: Generate PlantUML diagram
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
+          - windows-latest
+          - windows-2022
+          - windows-2019
+          - macos-latest
+          - macos-14
+          - macos-13
+          - macos-12
+        plantuml-version:
+          - latest
+          - '1.2024.6'
+          - '1.2024.5'
+          - '1.2024.4'
+          - '1.2024.3'
+          - '1.2024.2'
+          - '1.2024.1'
+        cli-arguments:
+          - '-h'
+          - '-decodeurl https://www.plantuml.com/plantuml/uml/SoWkIImgAStDuNBAJrBGjLDmpCbCJbMmKiX8pSd9vt98pKi1IW80'
+          - '-tsvg plantuml/production_controller_sequence.puml'
+        jvm-options:
+          - ''
+          - '-DPLANTUML_LIMIT_SIZE=8192'
+          - '-Xmx1024m'
+          - '-DPLANTUML_LIMIT_SIZE=8192 -Xmx1024m'
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
@@ -25,4 +46,6 @@ jobs:
       - name: Run PlantUML
         uses: dragondive/run-plantuml-local@main
         with:
-          version: ${{ inputs.plantuml-version }}
+          version: ${{ matrix.plantuml-version }}
+          cli-arguments: ${{ matrix.cli-arguments }}
+          jvm-options: ${{ matrix.jvm-options }}
