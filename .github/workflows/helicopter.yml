@@ -20,7 +20,7 @@ jobs:
         cli-arguments:
           - -h
           - -decodeurl SoWkIImgAStDuNBAJrBGjLDmpCbCJbMmKiX8pSd9vt98pKi1IW80
-          - -tsvg plantuml/production_controller_sequence.puml
+          - -tsvg plantuml/run_plantuml_local.puml
         jvm-options:
           - ''
           - -DPLANTUML_LIMIT_SIZE=8192
