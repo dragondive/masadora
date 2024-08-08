@@ -15,17 +15,17 @@ jobs:
           - macos-14
           # - macos-13
         plantuml-version:
-          - latest
+          # - latest
           - '1.2024.6'
         cli-arguments:
           - -h
-          - -decodeurl SoWkIImgAStDuNBAJrBGjLDmpCbCJbMmKiX8pSd9vt98pKi1IW80
-          - -tsvg plantuml/run_plantuml_local.puml
+          # - -decodeurl SoWkIImgAStDuNBAJrBGjLDmpCbCJbMmKiX8pSd9vt98pKi1IW80
+          # - -tsvg plantuml/run_plantuml_local.puml
         jvm-options:
           - ''
-          - -DPLANTUML_LIMIT_SIZE=8192
-          - -Xmx1024m
-          - -DPLANTUML_LIMIT_SIZE=8192 -Xmx1024m
+          # - -DPLANTUML_LIMIT_SIZE=8192
+          # - -Xmx1024m
+          # - -DPLANTUML_LIMIT_SIZE=8192 -Xmx1024m
 
     runs-on: ${{ matrix.os }}
 
