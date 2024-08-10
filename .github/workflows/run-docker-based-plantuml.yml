@@ -1,0 +1,16 @@
+name: Generate PlantUML diagram using docker-based action
+on:
+  workflow_dispatch:
+
+jobs:
+  placeholder:
+    name: >
+      Placeholder in main branch to enable workflow_dispatch 
+      in run-plantuml-docker-based-action branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Nothing
+        shell: bash
+        run: |
+          echo "This is a placeholder job in the main branch."
