@@ -1,0 +1,8 @@
+@startuml output_filename
+!include input_template
+!$data = %load_json(input_data_file)
+!assert %size($data) != 0 : "failed to load data from 'input_data_file'."
+
+$data.actor1 -> $data.actor2 : $data.message
+$data.actor2 -> $data.actor1 : $data.reply
+@enduml

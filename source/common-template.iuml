@@ -1,0 +1,3 @@
+title Example diagram to demonstrate file inclusions
+header Diagram generated at %date() with plantuml version %version()
+footer For support, contact us at support@company.com

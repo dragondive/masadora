@@ -1,0 +1,56 @@
+name: Generate PlantUML diagram using docker-based action
+on:
+  workflow_dispatch:
+
+jobs:
+  implicit-base-path-for-includes:
+    name: Working directory as implicit base path for include files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+        with:
+          path: run-plantuml-docker-based-action
+
+      - name: Generate PlantUML diagram
+        uses: Timmy/plantuml-action@v1
+        with:
+          args: >
+            -Dinput_template=source/common-template.iuml
+            -Dinput_data_file=source/diagram-data.json
+            -Doutput_file=example_diagram
+            -o diagrams/
+            plantuml/diagram-with-includes.puml
+
+      - name: Inspect results
+        shell: bash
+        run: |
+          ls -l diagrams/
+          ls -l plantuml/diagrams/
+
+  explicit-base-path-for-includes:
+    name: Working directory explicitly specified for include files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.7
+        with:
+          path: run-plantuml-docker-based-action
+
+      - name: Generate PlantUML diagram
+        uses: Timmy/plantuml-action@v1
+        with:
+          args: >
+            -Dinput_template=${{ github.workspace }}/source/common-template.iuml
+            -Dinput_data_file=${{ github.workspace }}/source/diagram-data.json
+            -Doutput_file=example_diagram
+            -o ${{ github.workspace }}/diagrams/
+            plantuml/diagram-with-includes.puml
+  
+      - name: Inspect results
+        shell: bash
+        run: |
+          ls -l diagrams/
+          ls -l plantuml/diagrams/
