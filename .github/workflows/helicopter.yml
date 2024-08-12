@@ -32,30 +32,13 @@ jobs:
         with:
           name: fly-helicopter-artifacts
 
-      - name: Load cached PlantUML
-        id: cached-plantuml
-        if: ${{ inputs.plantuml-version != 'latest' }}
-        uses: actions/cache@v4.0.2
+      - name: Generate PlantUML diagram
+        uses: dragondive/run-plantuml-local@v1.0.1
         with:
-          path: ${{ runner.temp }}/plantuml.jar
-          key: plantuml-${{ inputs.plantuml-version }}
-
-      - name: Setup PlantUML
-        if: steps.cached-plantuml.outputs.cache-hit != 'true'
-        run: |
-          if [ "${{ inputs.plantuml-version }}" = "latest" ]; then
-            PLANTUML_DOWNLOAD_URL=https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
-          else
-            PLANTUML_DOWNLOAD_URL=https://github.com/plantuml/plantuml/releases/download/v${{ inputs.plantuml-version }}/plantuml.jar
-          fi
-          curl -L -o ${{ runner.temp }}/plantuml.jar $PLANTUML_DOWNLOAD_URL
-
-      - name: Generate diagram
-        run: |
-          java -jar ${{ runner.temp }}/plantuml.jar \
-            -tsvg \
-            -Dinput_json_file=${{ github.workspace }}/cricket_grounds_test_matches_hosted.json \
-            -o ${{ github.workspace }} \
+          cli-arguments: >
+            -tsvg
+            -Dinput_json_file=${{ github.workspace }}/cricket_grounds_test_matches_hosted.json
+            -o ${{ github.workspace }}
             plantuml/test_match_host_wbs_demo.puml
 
       - name: Upload artifacts
@@ -64,7 +47,6 @@ jobs:
           name: land-helicopter-artifacts
           path: |
             test_match_host_wbs_demo.svg
-
 
   store-helicopter:
     name: Commit results to repository
@@ -101,6 +83,8 @@ jobs:
       - name: Commit generated diagram and data files
         uses: stefanzweifel/git-auto-commit-action@v5.0.1
         with:
-          commit_message: updated test_match_host_wbs_demo diagram at ${{ steps.commit-timestamp.outputs.timestamp }}
+          commit_message: >
+            updated test_match_host_wbs_demo diagram at
+            ${{ steps.commit-timestamp.outputs.timestamp }}
           branch: artifacts
           file_pattern: python/helicopter/results/

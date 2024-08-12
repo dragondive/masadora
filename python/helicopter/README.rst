@@ -104,9 +104,6 @@ The workflow is split into three jobs, suitably named *fly-helicopter*,
 3. **store-helicopter**: Commit the diagram, and optionally the intermediate data files,
    to the repository.
 
-Both jobs use the action `actions/cache`_ to speed up the workflow by caching the
-installed software and dependencies.
-
 Additional features
 ~~~~~~~~~~~~~~~~~~~
 
@@ -146,6 +143,5 @@ https://github.com/dragondive/masadora/blob/7167e4ac1fe7351df29a6c41396bc25fbbe6
 .. _test_match_wbs_demo.puml: https://github.com/dragondive/plantuml_demo/blob/33e13848c91b5bc321864b16ec968fa9eeaba080/src/preprocessor/test_match_host_wbs_demo.puml
 .. _plantuml_demo: https://github.com/dragondive/plantuml_demo
 .. _Compute and draw Test cricket matches hosting data in hierarchical structure: https://github.com/dragondive/plantuml_demo/tree/main/src/preprocessor#compute-and-draw-test-cricket-matches-hosting-data-in-hierarchical-structure
-.. _actions/cache: https://github.com/actions/cache
 
 .. |Hierarchical representation of Test cricket matches hosted at cricket grounds| image:: https://github.com/dragondive/masadora/blob/7167e4ac1fe7351df29a6c41396bc25fbbe6bd0a/python/helicopter/results/test_match_host_wbs_demo.svg
