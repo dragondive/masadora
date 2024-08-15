@@ -1,0 +1,24 @@
+@startuml languages
+allowmixing
+!$data = %load_json("plantuml/languages-data.json")
+!assert %size($data) != 0, "failed to load data."
+
+title "%<U+200B>not(%<U+200B>boolval($item.is_highlighted) == %<U+200B>true()"
+legend "<color:green>OK</color> 😃"
+json "<b>Languages Data</b>" as Data $data
+
+!$highlight_color = $data.highlight_color
+
+rectangle Languages {
+    !foreach $item in $data.items
+        !if %not(%boolval($item.is_highlighted)) == %true()
+            rectangle "$item.name" #$highlight_color
+        !else
+            rectangle "$item.name"
+        !endif
+    !endfor
+}
+
+Data -[hidden]down-> Languages
+
+@enduml

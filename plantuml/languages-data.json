@@ -1,0 +1,21 @@
+{
+    "highlight_color": "Gold",
+    "items": [
+        {
+            "name": "C++",
+            "is_highlighted": false
+        },
+        {
+            "name": "Java",
+            "is_highlighted": 1
+        },
+        {
+            "name": "Python",
+            "is_highlighted": 0
+        },
+        {
+            "name": "PlantUML",
+            "is_highlighted": true
+        }
+    ]
+}
